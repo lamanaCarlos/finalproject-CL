@@ -100,7 +100,7 @@ Estado general del proyecto frontend. Incluye:
 - ✅ Sub-páginas de navegación implementadas
 - ✅ Autenticación y routing protegido
 - ✅ Internacionalización (ES/EN)
-- ⏳ Funcionalidades pendientes
+- ✅ Funcionalidades pendientes completadas (compra, mensajería, envíos, encargos, publicar obras, subida de imágenes)
 
 ### `GUIA_PRUEBAS.md`
 Guía completa de pruebas con checklist:
@@ -267,14 +267,89 @@ El proyecto está configurado con:
 - [x] Notificaciones (react-hot-toast)
 - [x] Manejo de errores (ErrorBoundary, validación de API)
 
-### ⏳ Pendiente
+### ✅ Funcionalidades Recientes (Completadas - 26 de Enero, 2026)
 
-- [ ] Funcionalidad de compra completa
-- [ ] Sistema de mensajería en encargos (enviar mensajes)
-- [ ] Actualizar estado de envío en pedidos
-- [ ] Aceptar/rechazar encargos desde UI
-- [ ] Publicar/despublicar obras (desde UI del artista)
-- [ ] Subida de imágenes (actualmente solo URLs)
+#### 1. Funcionalidad de Compra Completa ✅
+
+**Ubicación:** `src/pages/ArtworkDetail/ArtworkDetailPage.tsx`
+
+- ✅ Botón "Comprar ahora" completamente funcional
+- ✅ Validación de autenticación, rol y disponibilidad
+- ✅ Confirmación antes de comprar
+- ✅ Integración con `orderApi.createOrder`
+- ✅ Redirección automática al detalle del pedido
+- ✅ Invalidación de cache y estados de carga/error
+- ✅ Traducciones completas (ES/EN)
+
+#### 2. Sistema de Mensajería en Encargos ✅
+
+**Ubicación:** `src/pages/ArtistCommissions/ArtistCommissionDetailPage.tsx`
+
+- ✅ Formulario para enviar mensajes
+- ✅ Lista de mensajes existentes con fechas
+- ✅ Validación y actualización automática
+- ✅ Integración con `commissionApi.addMessage`
+- ✅ Traducciones completas (ES/EN)
+
+#### 3. Actualizar Estado de Envío en Pedidos ✅
+
+**Ubicación:** `src/pages/ArtistOrders/ArtistOrderDetailPage.tsx`
+
+- ✅ Formulario completo para actualizar información de envío
+- ✅ Campos: estado, dirección, tracking, método, costo
+- ✅ Validación con React Hook Form + Zod
+- ✅ Botón toggle para mostrar/ocultar formulario
+- ✅ Integración con `orderApi.updateShipping`
+- ✅ Solo visible para pedidos que requieren envío
+- ✅ Traducciones completas (ES/EN)
+
+#### 4. Aceptar/Rechazar Encargos ✅
+
+**Ubicación:** `src/pages/ArtistCommissions/ArtistCommissionDetailPage.tsx`
+
+- ✅ Botones para aceptar/rechazar encargos
+- ✅ Solo visible para encargos con estado `pending`
+- ✅ Confirmación antes de la acción
+- ✅ Integración con `commissionApi.updateCommission`
+- ✅ Actualización automática del estado
+- ✅ Notificaciones de éxito/error
+- ✅ Traducciones completas (ES/EN)
+
+#### 5. Publicar/Despublicar Obras ✅
+
+**Ubicación:** `src/pages/ArtistArtworks/ArtistArtworksPage.tsx`
+
+- ✅ Botón "Publicar" para obras en borrador
+- ✅ Botón "Despublicar" para obras publicadas
+- ✅ No disponible para obras vendidas
+- ✅ Confirmación antes de la acción
+- ✅ Integración con `artworkApi.publishArtwork` y `artworkApi.unpublishArtwork`
+- ✅ Actualización automática de la lista
+- ✅ Traducciones completas (ES/EN)
+
+#### 6. Subida de Imágenes ✅
+
+**Componente:** `src/components/common/ImageUpload/ImageUpload.tsx`
+
+**Características:**
+- ✅ Preview de imágenes antes de subir
+- ✅ Subida múltiple de archivos (hasta 10 imágenes)
+- ✅ Eliminación de imágenes del preview
+- ✅ Estados de carga por archivo
+- ✅ Validación de tipo y tamaño en cliente
+- ✅ Integración con backend mediante FormData
+- ✅ Grid responsive para preview
+- ✅ Botón de eliminar en hover
+- ✅ Traducciones completas (ES/EN)
+
+**Integración:**
+- ✅ Integrado en `ArtistCreateArtworkPage` - Crear nueva obra
+- ✅ Integrado en `ArtistEditArtworkPage` - Editar obra existente
+
+**Validaciones:**
+- Tipo de archivo: Solo JPEG, PNG, GIF, WEBP
+- Tamaño máximo: 5MB por imagen
+- Cantidad máxima: 10 imágenes por obra
 
 ---
 
@@ -306,6 +381,77 @@ El proyecto incluye una imagen por defecto (`artwork-placeholder.svg`) que se mu
 - Hay problemas de red al obtener la imagen
 
 **Ubicación:** `src/assets/images/artwork-placeholder.svg`
+
+---
+
+## 📤 Subida de Imágenes
+
+### Componente ImageUpload
+
+El proyecto incluye un componente reutilizable `ImageUpload` para subir imágenes directamente desde el navegador.
+
+**Ubicación:** `src/components/common/ImageUpload/ImageUpload.tsx`
+
+**Características:**
+- ✅ Preview de imágenes antes de subir
+- ✅ Subida múltiple de archivos (hasta 10 imágenes)
+- ✅ Eliminación de imágenes del preview
+- ✅ Estados de carga por archivo
+- ✅ Validación de tipo y tamaño en cliente
+- ✅ Integración con backend mediante FormData
+- ✅ Traducciones completas (ES/EN)
+
+**Uso:**
+```tsx
+import { ImageUpload } from '../../components/common/ImageUpload';
+
+<ImageUpload
+  value={images}
+  onChange={(urls) => setImages(urls)}
+  multiple
+  maxImages={10}
+  disabled={isSubmitting}
+/>
+```
+
+### Validaciones
+
+- **Tipo de archivo**: Solo JPEG, PNG, GIF, WEBP
+- **Tamaño máximo**: 5MB por imagen
+- **Cantidad máxima**: 10 imágenes por obra
+
+### Integración
+
+El componente está integrado en:
+- `ArtistCreateArtworkPage` - Crear nueva obra
+- `ArtistEditArtworkPage` - Editar obra existente
+
+### Flujo de Subida
+
+1. Usuario selecciona imágenes desde el navegador
+2. Validación en cliente (tipo, tamaño)
+3. Subida al backend mediante `POST /api/upload/image`
+4. Preview inmediato de las imágenes subidas
+5. URLs guardadas en el formulario de la obra
+6. Las imágenes se almacenan en `backend/uploads/` y son accesibles públicamente en `/uploads/:filename`
+
+### Solución de Problemas
+
+**Error: "Tipo de archivo no permitido"**
+- Verificar que el archivo sea una imagen (JPEG, PNG, GIF, WEBP)
+- Verificar el tipo MIME del archivo
+
+**Error: "El archivo es demasiado grande"**
+- Reducir el tamaño de la imagen (máximo 5MB)
+- Comprimir la imagen antes de subirla
+
+**Error: "Demasiados archivos"**
+- Reducir la cantidad de imágenes (máximo 10)
+
+**Las imágenes no se muestran después de subir**
+- Verificar que el servidor esté sirviendo archivos estáticos en `/uploads`
+- Verificar que la URL de la imagen sea correcta
+- Verificar la consola del navegador para errores CORS o 404
 
 ---
 

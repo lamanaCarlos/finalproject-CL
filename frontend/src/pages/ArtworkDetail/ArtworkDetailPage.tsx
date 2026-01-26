@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { artworkApi } from '../../services/api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { artworkApi, orderApi } from '../../services/api';
 import { Layout } from '../../components/layout';
 import { Loader } from '../../components/common/Loader';
 import { Card } from '../../components/common/Card';
@@ -18,14 +18,32 @@ import artworkPlaceholder from '../../assets/images/artwork-placeholder.svg';
 export const ArtworkDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const { t, language } = useLanguage();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const locale = language === 'es' ? es : enUS;
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['artwork', id],
     queryFn: () => artworkApi.getArtworkById(id!),
     enabled: !!id,
+  });
+
+  const purchaseMutation = useMutation({
+    mutationFn: (artworkId: string) => orderApi.createOrder({ artworkId }),
+    onSuccess: (response) => {
+      toast.success(t('order.purchaseSuccess') || '¡Compra realizada exitosamente!');
+      // Invalidar queries relacionadas
+      queryClient.invalidateQueries({ queryKey: ['artwork', id] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['artworks'] });
+      // Redirigir al detalle del pedido
+      navigate(`/buyer/orders/${response.data._id}`);
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || t('order.purchaseError') || 'Error al realizar la compra';
+      toast.error(errorMessage);
+    },
   });
 
   if (isLoading) {
@@ -83,11 +101,26 @@ export const ArtworkDetailPage = () => {
   const handleBuyNow = () => {
     if (!isAuthenticated) {
       toast.error(t('artwork.loginRequired') || 'Debes iniciar sesión para comprar');
-      navigate('/login');
+      navigate('/login', { state: { from: `/artwork/${id}` } });
       return;
     }
-    // TODO: Implementar compra
-    toast.success(t('artwork.buyNow') || 'Funcionalidad de compra próximamente');
+
+    // Verificar que el usuario es comprador
+    if (user?.role !== 'buyer' && user?.role !== 'admin') {
+      toast.error(t('order.buyerOnly') || 'Solo los compradores pueden realizar compras');
+      return;
+    }
+
+    // Verificar que la obra está disponible
+    if (artwork.status !== 'published') {
+      toast.error(t('artwork.notAvailable') || 'Esta obra no está disponible para la venta');
+      return;
+    }
+
+    // Confirmar compra
+    if (window.confirm(t('order.confirmPurchase') || `¿Confirmar compra de "${artwork.title}" por $${artwork.price}?`)) {
+      purchaseMutation.mutate(artwork._id);
+    }
   };
 
   return (
@@ -171,10 +204,16 @@ export const ArtworkDetailPage = () => {
                   variant="primary"
                   size="lg"
                   onClick={handleBuyNow}
-                  disabled={artwork.status !== 'published'}
+                  disabled={artwork.status !== 'published' || purchaseMutation.isPending || !isAuthenticated}
                   leftIcon={<FiDollarSign className="w-5 h-5" />}
                 >
-                  {t('common.buyNow') || 'Comprar ahora'}
+                  {purchaseMutation.isPending
+                    ? t('order.processing') || 'Procesando...'
+                    : artwork.status === 'sold'
+                    ? t('artwork.sold') || 'Vendido'
+                    : !isAuthenticated
+                    ? t('artwork.loginToBuy') || 'Inicia sesión para comprar'
+                    : t('common.buyNow') || 'Comprar ahora'}
                 </Button>
               </div>
             </Card>

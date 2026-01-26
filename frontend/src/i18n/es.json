@@ -20,7 +20,8 @@
     "remove": "Eliminar",
     "saving": "Guardando...",
     "spanish": "Español",
-    "english": "Inglés"
+    "english": "Inglés",
+    "actions": "Acciones"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -58,7 +59,17 @@
     "createdAt": "Fecha de creación",
     "errorLoading": "Error al cargar la obra",
     "loginRequired": "Debes iniciar sesión para comprar",
+    "loginToBuy": "Inicia sesión para comprar",
+    "notAvailable": "Esta obra no está disponible para la venta",
     "buyNow": "Comprar ahora",
+    "publish": "Publicar",
+    "unpublish": "Despublicar",
+    "publishSuccess": "Obra publicada exitosamente",
+    "unpublishSuccess": "Obra despublicada exitosamente",
+    "publishError": "Error al publicar la obra",
+    "unpublishError": "Error al despublicar la obra",
+    "confirmPublish": "¿Publicar esta obra?",
+    "confirmUnpublish": "¿Despublicar esta obra?",
     "create": "Crear Nueva Obra",
     "edit": "Editar Obra",
     "update": "Actualizar Obra",
@@ -212,7 +223,23 @@
     "buyerInfo": "Información del Comprador",
     "buyerEmail": "Email",
     "commission": "Comisión",
-    "earnings": "Ganancias"
+    "earnings": "Ganancias",
+    "purchaseSuccess": "¡Compra realizada exitosamente!",
+    "purchaseError": "Error al realizar la compra",
+    "buyerOnly": "Solo los compradores pueden realizar compras",
+    "confirmPurchase": "¿Confirmar compra de \"{title}\" por ${price}?",
+    "processing": "Procesando...",
+    "shippingPending": "Envío pendiente",
+    "shippingAgreed": "Envío acordado",
+    "shippingSent": "Enviado",
+    "updateShipping": "Actualizar Envío",
+    "shippingStatus": "Estado de envío",
+    "shippingAddress": "Dirección de envío",
+    "trackingNumber": "Número de seguimiento",
+    "shippingMethod": "Método de envío",
+    "shippingCost": "Costo de envío",
+    "shippingUpdated": "Información de envío actualizada exitosamente",
+    "shippingError": "Error al actualizar el envío"
   },
   "commission": {
     "pending": "Pendiente",
@@ -228,7 +255,22 @@
     "budget": "Presupuesto",
     "agreedPrice": "Precio acordado",
     "summary": "Resumen del Encargo",
-    "messages": "Mensajes"
+    "messages": "Mensajes",
+    "accept": "Aceptar Encargo",
+    "reject": "Rechazar Encargo",
+    "acceptSuccess": "Encargo aceptado exitosamente",
+    "rejectSuccess": "Encargo rechazado exitosamente",
+    "acceptError": "Error al aceptar el encargo",
+    "rejectError": "Error al rechazar el encargo",
+    "confirmAccept": "¿Aceptar este encargo?",
+    "confirmReject": "¿Rechazar este encargo?",
+    "sendMessage": "Enviar Mensaje",
+    "messagePlaceholder": "Escribe tu mensaje...",
+    "messageSent": "Mensaje enviado exitosamente",
+    "messageError": "Error al enviar el mensaje",
+    "addMessage": "Agregar Mensaje",
+    "noMessages": "No hay mensajes aún",
+    "messageEmpty": "El mensaje no puede estar vacío"
   },
   "user": {
     "admin": "Admin",
@@ -273,5 +315,18 @@
     "minCommission": "Comisión Mínima ($)",
     "minCommissionHelp": "Comisión mínima que se cobra independientemente del porcentaje",
     "settingsUpdated": "Configuración actualizada exitosamente"
+  },
+  "upload": {
+    "uploadImage": "Subir Imagen",
+    "uploadMultiple": "Subir Imágenes ({current}/{max})",
+    "replaceImage": "Reemplazar Imagen",
+    "uploading": "Subiendo {filename}...",
+    "success": "Imagen subida exitosamente",
+    "error": "Error al subir la imagen",
+    "invalidFileType": "Tipo de archivo no permitido. Solo se permiten imágenes (JPEG, PNG, GIF, WEBP)",
+    "fileTooLarge": "El archivo es demasiado grande. Tamaño máximo: 5MB",
+    "maxImagesReached": "Solo puedes subir {count} imagen(es) más",
+    "maxLimitReached": "Has alcanzado el límite de {max} imagen(es)",
+    "helpText": "Formatos permitidos: JPEG, PNG, GIF, WEBP. Tamaño máximo: 5MB por imagen."
   }
 }

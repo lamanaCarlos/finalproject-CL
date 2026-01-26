@@ -10,6 +10,7 @@ import { Loader } from '../../components/common/Loader';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { Select } from '../../components/common/Select';
+import { ImageUpload } from '../../components/common/ImageUpload';
 import { useLanguage } from '../../context/LanguageContext';
 import { FiArrowLeft, FiSave } from 'react-icons/fi';
 import toast from 'react-hot-toast';
@@ -63,7 +64,7 @@ export const ArtistEditArtworkPage = () => {
       description: artwork.description,
       type: artwork.type,
       price: artwork.price,
-      images: artwork.images || [''],
+      images: artwork.images || [],
       technique: artwork.technique || '',
       dimensions: artwork.dimensions || '',
       weight: artwork.weight,
@@ -105,15 +106,6 @@ export const ArtistEditArtworkPage = () => {
     updateMutation.mutate(requestData);
   };
 
-  const addImageField = () => {
-    const currentImages = watch('images') || [];
-    setValue('images', [...currentImages, '']);
-  };
-
-  const removeImageField = (index: number) => {
-    const currentImages = watch('images') || [];
-    setValue('images', currentImages.filter((_, i) => i !== index));
-  };
 
   if (isLoadingArtwork) {
     return (
@@ -254,34 +246,18 @@ export const ArtistEditArtworkPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('artwork.images') || 'Imágenes (URLs)'} <span className="text-red-500">*</span>
+                {t('artwork.images') || 'Imágenes'} <span className="text-red-500">*</span>
               </label>
-              {watch('images')?.map((_, index) => (
-                <div key={index} className="flex gap-2 mb-2">
-                  <Input
-                    {...register(`images.${index}` as const)}
-                    error={errors.images?.[index]?.message}
-                    placeholder="https://example.com/image.jpg"
-                  />
-                  {watch('images') && watch('images')!.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="danger"
-                      onClick={() => removeImageField(index)}
-                    >
-                      {t('common.remove') || 'Eliminar'}
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={addImageField}
-                className="mt-2"
-              >
-                {t('artwork.addImage') || 'Agregar Imagen'}
-              </Button>
+              <ImageUpload
+                value={watch('images') || []}
+                onChange={(urls) => setValue('images', urls, { shouldValidate: true })}
+                multiple
+                maxImages={10}
+                disabled={isSubmitting}
+              />
+              {errors.images && (
+                <p className="mt-1 text-sm text-red-600">{errors.images.message}</p>
+              )}
             </div>
 
             <div>

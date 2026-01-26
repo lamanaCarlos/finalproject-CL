@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { artworkApi } from '../../services/api';
 import { DashboardLayout } from '../../components/layout';
 import { Card } from '../../components/common/Card';
@@ -8,10 +8,12 @@ import { Button } from '../../components/common/Button';
 import { ArtworkCard } from '../../components/artwork/ArtworkCard';
 import { useLanguage } from '../../context/LanguageContext';
 import { Link } from 'react-router-dom';
-import { FiImage, FiPlus } from 'react-icons/fi';
+import { FiImage, FiPlus, FiEye, FiEyeOff } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 
 export const ArtistArtworksPage = () => {
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
 
   const { data: artworksData, isLoading, error } = useQuery({
     queryKey: ['artworks', 'my'],
@@ -19,6 +21,46 @@ export const ArtistArtworksPage = () => {
   });
 
   const artworks = artworksData?.data || [];
+
+  // Mutation para publicar obra
+  const publishMutation = useMutation({
+    mutationFn: (artworkId: string) => artworkApi.publishArtwork(artworkId),
+    onSuccess: () => {
+      toast.success(t('artwork.publishSuccess') || 'Obra publicada exitosamente');
+      queryClient.invalidateQueries({ queryKey: ['artworks', 'my'] });
+      queryClient.invalidateQueries({ queryKey: ['artworks'] });
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || t('artwork.publishError') || 'Error al publicar la obra';
+      toast.error(errorMessage);
+    },
+  });
+
+  // Mutation para despublicar obra
+  const unpublishMutation = useMutation({
+    mutationFn: (artworkId: string) => artworkApi.unpublishArtwork(artworkId),
+    onSuccess: () => {
+      toast.success(t('artwork.unpublishSuccess') || 'Obra despublicada exitosamente');
+      queryClient.invalidateQueries({ queryKey: ['artworks', 'my'] });
+      queryClient.invalidateQueries({ queryKey: ['artworks'] });
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || t('artwork.unpublishError') || 'Error al despublicar la obra';
+      toast.error(errorMessage);
+    },
+  });
+
+  const handlePublish = (artworkId: string) => {
+    if (window.confirm(t('artwork.confirmPublish') || '¿Publicar esta obra?')) {
+      publishMutation.mutate(artworkId);
+    }
+  };
+
+  const handleUnpublish = (artworkId: string) => {
+    if (window.confirm(t('artwork.confirmUnpublish') || '¿Despublicar esta obra?')) {
+      unpublishMutation.mutate(artworkId);
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -92,13 +134,43 @@ export const ArtistArtworksPage = () => {
             {artworks.map((artwork) => (
               <div key={artwork._id} className="relative">
                 <ArtworkCard artwork={artwork} />
-                <div className="mt-2 flex items-center justify-between">
-                  {getStatusBadge(artwork.status)}
-                  <Link to={`/artist/artworks/${artwork._id}/edit`}>
-                    <Button variant="outline" size="sm">
-                      {t('common.edit') || 'Editar'}
-                    </Button>
-                  </Link>
+                <div className="mt-2 space-y-2">
+                  <div className="flex items-center justify-between">
+                    {getStatusBadge(artwork.status)}
+                    <Link to={`/artist/artworks/${artwork._id}/edit`}>
+                      <Button variant="outline" size="sm">
+                        {t('common.edit') || 'Editar'}
+                      </Button>
+                    </Link>
+                  </div>
+                  {/* Publish/Unpublish Actions */}
+                  {artwork.status !== 'sold' && (
+                    <div className="flex gap-2">
+                      {artwork.status === 'published' ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          fullWidth
+                          onClick={() => handleUnpublish(artwork._id)}
+                          disabled={unpublishMutation.isPending}
+                          leftIcon={<FiEyeOff className="w-4 h-4" />}
+                        >
+                          {t('artwork.unpublish') || 'Despublicar'}
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          fullWidth
+                          onClick={() => handlePublish(artwork._id)}
+                          disabled={publishMutation.isPending}
+                          leftIcon={<FiEye className="w-4 h-4" />}
+                        >
+                          {t('artwork.publish') || 'Publicar'}
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

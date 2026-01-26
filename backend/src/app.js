@@ -23,6 +23,7 @@ const artworkRoutes = require('./routes/artwork.routes');
 const orderRoutes = require('./routes/order.routes');
 const commissionRoutes = require('./routes/commission.routes');
 const adminRoutes = require('./routes/admin.routes');
+const uploadRoutes = require('./routes/upload.routes');
 
 const app = express();
 
@@ -129,6 +130,11 @@ app.use('/api/artworks', artworkRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/commissions', commissionRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/upload', uploadRoutes);
+
+// Servir archivos estáticos de uploads
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // ============================================
 // MANEJO DE ERRORES

@@ -17,6 +17,8 @@ export { Card } from './Card';
 export type { CardProps } from './Card';
 
 export { Badge } from './Badge';
+export { ImageUpload } from './ImageUpload';
+export type { ImageUploadProps } from './ImageUpload';
 export type { BadgeProps } from './Badge';
 
 export { Select } from './Select';

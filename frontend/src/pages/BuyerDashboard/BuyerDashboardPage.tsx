@@ -1,0 +1,247 @@
+import { useQuery } from '@tanstack/react-query';
+import { orderApi, commissionApi } from '../../services/api';
+import { DashboardLayout } from '../../components/layout';
+import { Card } from '../../components/common/Card';
+import { Loader } from '../../components/common/Loader';
+import { Badge } from '../../components/common/Badge';
+import { Button } from '../../components/common/Button';
+import { useLanguage } from '../../context/LanguageContext';
+import { Link } from 'react-router-dom';
+import { FiShoppingBag, FiFileText, FiDollarSign, FiClock } from 'react-icons/fi';
+import { format } from 'date-fns';
+import { es, enUS } from 'date-fns/locale';
+
+export const BuyerDashboardPage = () => {
+  const { t, language } = useLanguage();
+  const locale = language === 'es' ? es : enUS;
+
+  const { data: ordersData, isLoading: isLoadingOrders } = useQuery({
+    queryKey: ['orders', 'my'],
+    queryFn: () => orderApi.getMyOrders(),
+  });
+
+  const { data: commissionsData, isLoading: isLoadingCommissions } = useQuery({
+    queryKey: ['commissions', 'my'],
+    queryFn: () => commissionApi.getMyCommissions(),
+  });
+
+  const orders = ordersData?.data || [];
+  const commissions = commissionsData?.data || [];
+
+  // Calculate statistics
+  const totalOrders = orders.length;
+  const pendingOrders = orders.filter((o) => o.status === 'pending' || o.shippingStatus === 'pending').length;
+  const totalSpent = orders.reduce((sum, order) => sum + order.price, 0);
+  const activeCommissions = commissions.filter((c) => ['pending', 'accepted', 'in_progress'].includes(c.status)).length;
+
+  const isLoading = isLoadingOrders || isLoadingCommissions;
+
+  const getOrderStatusBadge = (order: typeof orders[0]) => {
+    if (order.shippingRequired && order.shippingStatus) {
+      switch (order.shippingStatus) {
+        case 'pending':
+          return <Badge variant="warning">{t('order.shippingPending') || 'Envío pendiente'}</Badge>;
+        case 'agreed':
+          return <Badge variant="info">{t('order.shippingAgreed') || 'Envío acordado'}</Badge>;
+        case 'sent':
+          return <Badge variant="success">{t('order.shippingSent') || 'Enviado'}</Badge>;
+        default:
+          return <Badge variant="primary">{t('order.completed') || 'Completado'}</Badge>;
+      }
+    }
+    return <Badge variant="success">{t('order.completed') || 'Completado'}</Badge>;
+  };
+
+  const getCommissionStatusBadge = (commission: typeof commissions[0]) => {
+    switch (commission.status) {
+      case 'pending':
+        return <Badge variant="warning">{t('commission.pending') || 'Pendiente'}</Badge>;
+      case 'accepted':
+        return <Badge variant="success">{t('commission.accepted') || 'Aceptado'}</Badge>;
+      case 'rejected':
+        return <Badge variant="danger">{t('commission.rejected') || 'Rechazado'}</Badge>;
+      case 'in_progress':
+        return <Badge variant="info">{t('commission.inProgress') || 'En progreso'}</Badge>;
+      case 'completed':
+        return <Badge variant="success">{t('commission.completed') || 'Completado'}</Badge>;
+      case 'cancelled':
+        return <Badge variant="danger">{t('commission.cancelled') || 'Cancelado'}</Badge>;
+      default:
+        return null;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center items-center py-20">
+          <Loader size="lg" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <DashboardLayout>
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">{t('dashboard.buyer.title') || 'Mi Panel'}</h1>
+          <p className="text-gray-600">{t('dashboard.buyer.subtitle') || 'Gestiona tus compras y encargos'}</p>
+        </div>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card padding="lg" className="bg-primary-50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">{t('dashboard.totalOrders') || 'Total de Pedidos'}</p>
+                <p className="text-3xl font-bold text-primary-600">{totalOrders}</p>
+              </div>
+              <FiShoppingBag className="w-10 h-10 text-primary-600 opacity-50" />
+            </div>
+          </Card>
+
+          <Card padding="lg" className="bg-yellow-50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">{t('dashboard.pendingOrders') || 'Pedidos Pendientes'}</p>
+                <p className="text-3xl font-bold text-yellow-600">{pendingOrders}</p>
+              </div>
+              <FiClock className="w-10 h-10 text-yellow-600 opacity-50" />
+            </div>
+          </Card>
+
+          <Card padding="lg" className="bg-green-50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">{t('dashboard.totalSpent') || 'Total Gastado'}</p>
+                <p className="text-3xl font-bold text-green-600">${totalSpent.toFixed(2)}</p>
+              </div>
+              <FiDollarSign className="w-10 h-10 text-green-600 opacity-50" />
+            </div>
+          </Card>
+
+          <Card padding="lg" className="bg-blue-50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">{t('dashboard.activeCommissions') || 'Encargos Activos'}</p>
+                <p className="text-3xl font-bold text-blue-600">{activeCommissions}</p>
+              </div>
+              <FiFileText className="w-10 h-10 text-blue-600 opacity-50" />
+            </div>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Recent Orders */}
+          <Card padding="lg">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <FiShoppingBag className="w-6 h-6" />
+                {t('dashboard.recentOrders') || 'Pedidos Recientes'}
+              </h2>
+              <Link to="/buyer/orders">
+                <Button variant="outline" size="sm">
+                  {t('dashboard.viewAll') || 'Ver todos'}
+                </Button>
+              </Link>
+            </div>
+
+            {orders.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-600 mb-4">{t('dashboard.noOrders') || 'No tienes pedidos aún'}</p>
+                <Link to="/gallery">
+                  <Button variant="primary">{t('dashboard.exploreGallery') || 'Explorar Galería'}</Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {orders.slice(0, 5).map((order) => {
+                  const artwork = typeof order.artworkId === 'object' ? order.artworkId : order.artwork;
+                  const artist = order.artist;
+                  const artistName = artist?.displayName || 'Artista';
+                  return (
+                    <Link
+                      key={order._id}
+                      to={`/buyer/orders/${order._id}`}
+                      className="block p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">{artwork?.title || 'Obra'}</p>
+                          <p className="text-sm text-gray-600">{artistName}</p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {format(new Date(order.createdAt), 'dd MMM yyyy', { locale })}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-primary-600">${order.price}</p>
+                          {getOrderStatusBadge(order)}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+
+          {/* Recent Commissions */}
+          <Card padding="lg">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <FiFileText className="w-6 h-6" />
+                {t('dashboard.recentCommissions') || 'Encargos Recientes'}
+              </h2>
+              <Link to="/buyer/commissions">
+                <Button variant="outline" size="sm">
+                  {t('dashboard.viewAll') || 'Ver todos'}
+                </Button>
+              </Link>
+            </div>
+
+            {commissions.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-600 mb-4">{t('dashboard.noCommissions') || 'No tienes encargos aún'}</p>
+                <Link to="/gallery">
+                  <Button variant="primary">{t('dashboard.exploreArtists') || 'Explorar Artistas'}</Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {commissions.slice(0, 5).map((commission) => {
+                  const artist = commission.artist;
+                  const artistName = artist?.displayName || 'Artista';
+                  return (
+                    <Link
+                      key={commission._id}
+                      to={`/buyer/commissions/${commission._id}`}
+                      className="block p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">{commission.title}</p>
+                          <p className="text-sm text-gray-600">{artistName}</p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {format(new Date(commission.createdAt), 'dd MMM yyyy', { locale })}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-primary-600">
+                            ${commission.agreedPrice || commission.budget}
+                          </p>
+                          {getCommissionStatusBadge(commission)}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+};

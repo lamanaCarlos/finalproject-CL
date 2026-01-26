@@ -106,11 +106,15 @@ marketplace-arte/
   - Archivos modificados/creados
   - Pruebas recomendadas
 
-- **`frontend/GUIA_PRUEBAS.md`** - Guía completa de pruebas
-  - Checklist de pruebas por página
-  - Flujos de integración
+- **`GUIA_PRUEBAS_COMPLETA.md`** - Guía completa de pruebas (Backend + Frontend)
+  - Pruebas detalladas de todos los endpoints del backend
+  - Pruebas de todas las páginas y funcionalidades del frontend
+  - Flujos completos por rol (Comprador, Artista, Administrador)
+  - Credenciales de prueba organizadas
+  - Checklist final completo
   - Problemas comunes y soluciones
-  - Credenciales de prueba
+
+- **`frontend/GUIA_PRUEBAS.md`** - Guía de pruebas del frontend (referencia rápida)
 
 - **`backend/README_BBDD.md`** - Documentación detallada de la base de datos
   - Esquemas y modelos
@@ -498,7 +502,8 @@ Para información detallada, consultar:
 - `backend/README.md` - Documentación completa del backend
 - `frontend/README.md` - Documentación completa del frontend
 - `frontend/ESTADO_PROYECTO.md` - Estado detallado del proyecto
-- `frontend/GUIA_PRUEBAS.md` - Guía completa de pruebas
+- `GUIA_PRUEBAS_COMPLETA.md` - Guía completa de pruebas (Backend + Frontend)
+- `frontend/GUIA_PRUEBAS.md` - Guía de pruebas del frontend (referencia rápida)
 
 ---
 

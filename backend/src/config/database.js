@@ -10,8 +10,6 @@ const connectDB = async () => {
     const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/marketplace-arte';
     
     const options = {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       maxPoolSize: 10, // Mantener hasta 10 conexiones socket
       serverSelectionTimeoutMS: 5000, // Tiempo de espera para seleccionar servidor
       socketTimeoutMS: 45000, // Cerrar sockets después de 45s de inactividad

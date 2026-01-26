@@ -19,7 +19,6 @@ const orderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Artwork',
       required: [true, 'El ID de la obra es requerido'],
-      index: true,
     },
     artistId: {
       type: mongoose.Schema.Types.ObjectId,

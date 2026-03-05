@@ -1,0 +1,25 @@
+<svg width="800" height="800" viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="800" fill="#F3F4F6"/>
+  
+  <!-- Canvas Frame -->
+  <rect x="100" y="100" width="600" height="600" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="4"/>
+  
+  <!-- Abstract Art Elements -->
+  <!-- Circle -->
+  <circle cx="300" cy="300" r="80" fill="#3B82F6" opacity="0.6"/>
+  <circle cx="500" cy="300" r="60" fill="#8B5CF6" opacity="0.6"/>
+  
+  <!-- Rectangle -->
+  <rect x="350" y="400" width="100" height="150" fill="#10B981" opacity="0.5" rx="8"/>
+  
+  <!-- Triangle -->
+  <path d="M400 200 L500 350 L300 350 Z" fill="#F59E0B" opacity="0.5"/>
+  
+  <!-- Brush Strokes -->
+  <path d="M200 500 Q300 450 400 500 T600 500" stroke="#EF4444" stroke-width="20" fill="none" stroke-linecap="round" opacity="0.4"/>
+  <path d="M250 600 Q350 550 450 600 T650 600" stroke="#EC4899" stroke-width="15" fill="none" stroke-linecap="round" opacity="0.4"/>
+  
+  <!-- Text -->
+  <text x="400" y="750" font-family="Arial, sans-serif" font-size="32" fill="#6B7280" text-anchor="middle" font-weight="300">Artwork Placeholder</text>
+</svg>

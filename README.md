@@ -125,10 +125,111 @@ marketplace-arte/
 
 - `frontendprompts.md` - Resumen de prompts y conversaciones
 - `backend/ACTUALIZAR_IMAGENES_OBRAS.md` - Script de actualización de imágenes
+- `terceraFase.md` - Mejoras funcionales de Fase 3
+- `PLAN_IMPLEMENTACION_INMEDIATA.md` - Plan paso a paso de implementación
+- `BACKLOG_TECNICO_FASE3_INMEDIATO.md` - Backlog técnico por archivo
+- `RUN_LOCAL_FASE3.md` - Comandos para ejecutar Fase 3 en local
+- `CHECKLIST_REGRESION_FASE3.md` - Checklist formal de regresión
+- `E2E_FASE3_CHECKLIST.md` - Checklist E2E de Fase 3
+- `INFORME_VALIDACION_FASE3.md` - Estado de validación de la implementación
 
 ---
 
 ## 🚀 Instalación y Ejecución
+
+## ⚡ Puesta en Marcha Rápida (primera vez)
+
+Sigue estos pasos en orden para dejar el proyecto funcionando en local:
+
+### 1) Requisitos
+
+- Node.js `>= 20`
+- MongoDB local o MongoDB Atlas
+
+Verifica versiones:
+
+```bash
+node --version
+npm --version
+```
+
+### 2) Backend (terminal 1)
+
+```bash
+cd backend
+npm install
+cp .env.example .env
+```
+
+Editar `backend/.env` (mínimo obligatorio):
+
+```env
+MONGO_URI=mongodb://localhost:27017/marketplace-arte
+JWT_SECRET=tu-secreto-jwt
+PORT=4000
+```
+
+Opcionales (si quieres dejar preparado pagos):
+
+```env
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_CURRENCY=eur
+```
+
+Inicializar datos y arrancar backend:
+
+```bash
+npm run seed
+npm run dev
+```
+
+Comprobar backend:
+
+```bash
+curl http://localhost:4000/health
+```
+
+### 3) Frontend (terminal 2)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Abrir en navegador:
+
+- Frontend: `http://localhost:5173`
+- Backend API: `http://localhost:4000/api`
+
+### 4) Login de prueba
+
+- Admin: `admin@marketplace.com / Admin123!`
+- Buyer: `maria.garcia@email.com / Password123!`
+- Artist: `sofia.artista@email.com / Password123!`
+
+### 5) Verificación rápida recomendada
+
+Backend:
+
+```bash
+cd backend
+npm run test:unit
+npm run test:endpoints
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm run build
+```
+
+Si quieres validar Fase 3 (sin pasarela real), consulta:
+- `RUN_LOCAL_FASE3.md`
+- `CHECKLIST_REGRESION_FASE3.md`
+- `E2E_FASE3_CHECKLIST.md`
 
 ### Requisitos
 
@@ -204,6 +305,11 @@ JWT_EXPIRE=7d
 # Administrador Inicial
 ADMIN_EMAIL=admin@marketplace.com
 ADMIN_PASSWORD=Admin123!
+
+# Pagos (integración preparada)
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_CURRENCY=eur
 ```
 
 ### Frontend (`.env`)
@@ -288,6 +394,14 @@ Después de ejecutar `npm run seed` en el backend, puedes usar:
 - ✅ Gestión de pedidos (comprador y artista)
 - ✅ **Actualizar estado de envío** (desde UI del artista)
 - ✅ Cálculo automático de comisiones
+- ✅ Estados de pago en pedidos (`payment_pending`, `payment_succeeded`, `payment_failed`, `refunded`)
+- ✅ Flujo de confirmación de venta por webhook (la obra pasa a `sold` tras confirmación de pago)
+
+### Confianza y Post-compra
+- ✅ Certificados/licencias automáticos para pedidos confirmados
+- ✅ Consulta de certificado por pedido
+- ✅ Reseñas verificadas por compra
+- ✅ Bloqueo de reseñas duplicadas por pedido
 
 ### Encargos
 - ✅ Solicitar encargos personalizados
@@ -309,6 +423,7 @@ Después de ejecutar `npm run seed` en el backend, puedes usar:
 - ✅ Notificaciones (react-hot-toast)
 - ✅ Manejo de errores (ErrorBoundary)
 - ✅ Imágenes por defecto (artwork-placeholder.svg)
+- ✅ Notificaciones in-app (campana, panel, contador y marcado como leído)
 
 ---
 
@@ -325,7 +440,7 @@ npm run test:connection
 npm run test:endpoints
 ```
 
-**Resultados:** ✅ 27 endpoints probados con 100% de éxito
+**Resultados:** ✅ Endpoints base + extensiones Fase 3 probados
 
 ### Frontend
 
@@ -375,9 +490,8 @@ Consultar el documento legal en `docs/` antes de lanzar a producción.
 
 ### 🚀 Próximos Pasos
 
-- [ ] Pagos con Stripe/PayPal
-- [ ] Notificaciones en tiempo real
-- [ ] Sistema de reseñas y valoraciones
+- [ ] Seleccionar pasarela definitiva y completar checkout real en frontend
+- [ ] Notificaciones en tiempo real (WebSocket/SSE)
 - [ ] Chat en tiempo real
 - [ ] Escalado internacional (más idiomas)
 - [ ] Funcionalidades premium
@@ -416,6 +530,8 @@ npm run seed:clear # Limpiar y recrear datos de ejemplo
 npm run update-images # Actualizar URLs de imágenes de obras
 npm run test:connection # Probar conexión a MongoDB
 npm run test:endpoints # Probar todos los endpoints
+npm run test:unit  # Tests unitarios backend
+npm run test:phase3 # Integración Fase 3 (sin pasarela real)
 ```
 
 ### Frontend
@@ -461,7 +577,7 @@ npm run lint       # Ejecutar ESLint
 
 ## 📊 Estadísticas del Proyecto
 
-- **Endpoints Backend:** 27+ endpoints probados (100% funcionales)
+- **Endpoints Backend:** 30+ endpoints (incluye payments/certificates/reviews/notifications)
 - **Páginas Frontend:** 20+ páginas implementadas
 - **Componentes:** 15+ componentes reutilizables
 - **Idiomas:** 2 (Español, Inglés)
@@ -504,7 +620,9 @@ Para información detallada, consultar:
 - `frontend/ESTADO_PROYECTO.md` - Estado detallado del proyecto
 - `GUIA_PRUEBAS_COMPLETA.md` - Guía completa de pruebas (Backend + Frontend)
 - `frontend/GUIA_PRUEBAS.md` - Guía de pruebas del frontend (referencia rápida)
+- `RUN_LOCAL_FASE3.md` - Ejecución local de Fase 3
+- `INFORME_VALIDACION_FASE3.md` - Estado de validación actual
 
 ---
 
-**Última actualización:** 26 de Enero, 2026
+**Última actualización:** 19 de Marzo, 2026

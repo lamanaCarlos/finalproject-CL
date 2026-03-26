@@ -9,6 +9,9 @@ const Artwork = require('./Artwork');
 const Order = require('./Order');
 const CommissionRequest = require('./CommissionRequest');
 const PlatformSettings = require('./PlatformSettings');
+const Certificate = require('./Certificate');
+const Notification = require('./Notification');
+const Review = require('./Review');
 
 module.exports = {
   User,
@@ -17,4 +20,7 @@ module.exports = {
   Order,
   CommissionRequest,
   PlatformSettings,
+  Certificate,
+  Notification,
+  Review,
 };

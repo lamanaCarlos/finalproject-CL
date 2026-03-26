@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { artworkApi, orderApi } from '../../services/api';
+import { artworkApi, orderApi, paymentApi, reviewApi } from '../../services/api';
 import { Layout } from '../../components/layout';
 import { Loader } from '../../components/common/Loader';
 import { Card } from '../../components/common/Card';
@@ -14,6 +14,11 @@ import { es, enUS } from 'date-fns/locale';
 import { FiArrowLeft, FiDollarSign, FiCalendar, FiUser, FiImage, FiPackage, FiMonitor } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import artworkPlaceholder from '../../assets/images/artwork-placeholder.svg';
+import type { AxiosError } from 'axios';
+
+type ApiErrorResponse = {
+  message?: string;
+};
 
 export const ArtworkDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -30,20 +35,37 @@ export const ArtworkDetailPage = () => {
   });
 
   const purchaseMutation = useMutation({
-    mutationFn: (artworkId: string) => orderApi.createOrder({ artworkId }),
+    mutationFn: async (artworkId: string) => {
+      const orderResponse = await orderApi.createOrder({ artworkId });
+      const orderId = orderResponse.data?._id;
+      if (!orderId) {
+        throw new Error('No se pudo crear la orden');
+      }
+      await paymentApi.createPaymentIntent({ orderId });
+      return orderResponse;
+    },
     onSuccess: (response) => {
-      toast.success(t('order.purchaseSuccess') || '¡Compra realizada exitosamente!');
+      toast.success(t('order.purchaseSuccess') || 'Pedido creado. Continúa con el pago.');
       // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['artwork', id] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['artworks'] });
       // Redirigir al detalle del pedido
-      navigate(`/buyer/orders/${response.data._id}`);
+      if (response.data?._id) {
+        navigate(`/buyer/orders/${response.data._id}`);
+      }
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || t('order.purchaseError') || 'Error al realizar la compra';
+    onError: (error: unknown) => {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      const errorMessage = axiosError?.response?.data?.message || t('order.purchaseError') || 'Error al realizar la compra';
       toast.error(errorMessage);
     },
+  });
+
+  const { data: reviewsData } = useQuery({
+    queryKey: ['artwork-reviews', id],
+    queryFn: () => reviewApi.getArtworkReviews(id!),
+    enabled: !!id,
   });
 
   if (isLoading) {
@@ -76,6 +98,7 @@ export const ArtworkDetailPage = () => {
   const artistId = typeof artwork.artistId === 'string' ? artwork.artistId : artwork.artistId?._id || '';
   const mainImage = artwork.images && artwork.images.length > 0 ? artwork.images[0] : artworkPlaceholder;
   const otherImages = artwork.images?.slice(1) || [];
+  const reviews = reviewsData?.data || [];
 
   const getStatusBadge = () => {
     switch (artwork.status) {
@@ -294,6 +317,31 @@ export const ArtworkDetailPage = () => {
                   </div>
                 </div>
               </div>
+            </Card>
+
+            {/* Reviews */}
+            <Card padding="lg">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('artwork.reviews') || 'Reseñas'}</h2>
+              {reviews.length === 0 ? (
+                <p className="text-gray-600">{t('artwork.noReviews') || 'Aún no hay reseñas para esta obra.'}</p>
+              ) : (
+                <div className="space-y-4">
+                  {reviews.map((review) => (
+                    <div key={review._id} className="border border-gray-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-semibold text-gray-900">
+                          {'★'.repeat(review.rating)}
+                          {'☆'.repeat(5 - review.rating)}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {format(new Date(review.createdAt), 'dd/MM/yyyy', { locale })}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700">{review.comment || '-'}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </Card>
           </div>
         </div>

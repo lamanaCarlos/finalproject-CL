@@ -4,3 +4,7 @@ export * from './artwork.types';
 export * from './artist.types';
 export * from './order.types';
 export * from './commission.types';
+export * from './payment.types';
+export * from './certificate.types';
+export * from './review.types';
+export * from './notification.types';

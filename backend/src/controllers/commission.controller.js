@@ -6,6 +6,7 @@
 const { CommissionRequest, User, ArtistProfile } = require('../models');
 const { formatDatabaseError } = require('../utils/dbErrors');
 const logger = require('../utils/logger');
+const { createNotification } = require('../services/notification.service');
 
 /**
  * Solicitar encargo
@@ -63,6 +64,15 @@ const createCommission = async (req, res, next) => {
     await commission.save();
 
     logger.info(`Encargo creado: ${commission._id} - Comprador ${buyerId} -> Artista ${artistId}`);
+
+    await createNotification({
+      userId: artistId,
+      type: 'commission_created',
+      title: 'Nuevo encargo recibido',
+      message: `Has recibido un nuevo encargo (${commission._id})`,
+      entityType: 'commission',
+      entityId: commission._id,
+    });
 
     res.status(201).json({
       success: true,
@@ -255,6 +265,15 @@ const updateCommissionStatus = async (req, res, next) => {
     }
 
     logger.info(`Estado de encargo actualizado: ${id} -> ${status} por usuario ${userId}`);
+
+    await createNotification({
+      userId: commission.buyerId,
+      type: 'commission_status_changed',
+      title: 'Actualización de encargo',
+      message: `Tu encargo ${commission._id} cambió a estado ${commission.status}`,
+      entityType: 'commission',
+      entityId: commission._id,
+    });
 
     res.status(200).json({
       success: true,

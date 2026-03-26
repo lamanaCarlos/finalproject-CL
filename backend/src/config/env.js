@@ -17,6 +17,9 @@ const optionalEnvVars = {
   CDN_URL: '',
   ADMIN_EMAIL: 'admin@marketplace.com',
   ADMIN_PASSWORD: 'Admin123!',
+  STRIPE_SECRET_KEY: '',
+  STRIPE_WEBHOOK_SECRET: '',
+  STRIPE_CURRENCY: 'eur',
 };
 
 /**
@@ -52,6 +55,9 @@ const getEnvConfig = () => {
     cdnUrl: process.env.CDN_URL || '',
     adminEmail: process.env.ADMIN_EMAIL || 'admin@marketplace.com',
     adminPassword: process.env.ADMIN_PASSWORD || 'Admin123!',
+    stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
+    stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
+    stripeCurrency: process.env.STRIPE_CURRENCY || 'eur',
   };
 };
 

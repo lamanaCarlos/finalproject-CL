@@ -27,7 +27,8 @@ const executeTransaction = async (callback) => {
 };
 
 /**
- * Crea una orden y marca la obra como vendida de forma atómica
+ * Crea una orden sin marcar la obra como vendida.
+ * La venta se confirma únicamente tras webhook de pago exitoso.
  * @param {Object} orderData - Datos de la orden
  * @param {string} artworkId - ID de la obra
  * @param {number} commissionPercentage - Porcentaje de comisión
@@ -58,10 +59,6 @@ const createOrderWithArtworkUpdate = async (orderData, artworkId, commissionPerc
       commission,
       artistEarnings,
     }], { session });
-
-    // Marcar obra como vendida
-    artwork.status = 'sold';
-    await artwork.save({ session });
 
     return order[0];
   });

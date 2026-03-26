@@ -13,6 +13,11 @@ import { FiArrowLeft, FiUser, FiMessageSquare, FiCheck, FiX, FiSend } from 'reac
 import { format } from 'date-fns';
 import { es, enUS } from 'date-fns/locale';
 import toast from 'react-hot-toast';
+import type { AxiosError } from 'axios';
+
+type ApiErrorResponse = {
+  message?: string;
+};
 
 export const ArtistCommissionDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,7 +38,7 @@ export const ArtistCommissionDetailPage = () => {
   const updateStatusMutation = useMutation({
     mutationFn: ({ status, agreedPrice }: { status: 'accepted' | 'rejected'; agreedPrice?: number }) =>
       commissionApi.updateCommission(id!, { status, agreedPrice }),
-    onSuccess: (response, variables) => {
+    onSuccess: (_response, variables) => {
       if (variables.status === 'accepted') {
         toast.success(t('commission.acceptSuccess') || 'Encargo aceptado exitosamente');
       } else {
@@ -42,9 +47,10 @@ export const ArtistCommissionDetailPage = () => {
       queryClient.invalidateQueries({ queryKey: ['commission', id] });
       queryClient.invalidateQueries({ queryKey: ['commissions'] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       const errorMessage =
-        error?.response?.data?.message || t('commission.acceptError') || 'Error al actualizar el encargo';
+        axiosError?.response?.data?.message || t('commission.acceptError') || 'Error al actualizar el encargo';
       toast.error(errorMessage);
     },
   });
@@ -57,19 +63,22 @@ export const ArtistCommissionDetailPage = () => {
       setMessageText('');
       queryClient.invalidateQueries({ queryKey: ['commission', id] });
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || t('commission.messageError') || 'Error al enviar el mensaje';
+    onError: (error: unknown) => {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      const errorMessage = axiosError?.response?.data?.message || t('commission.messageError') || 'Error al enviar el mensaje';
       toast.error(errorMessage);
     },
   });
 
   const handleAccept = () => {
+    if (!commission) return;
     if (window.confirm(t('commission.confirmAccept') || '¿Aceptar este encargo?')) {
       updateStatusMutation.mutate({ status: 'accepted', agreedPrice: commission.budget });
     }
   };
 
   const handleReject = () => {
+    if (!commission) return;
     if (window.confirm(t('commission.confirmReject') || '¿Rechazar este encargo?')) {
       updateStatusMutation.mutate({ status: 'rejected' });
     }

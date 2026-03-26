@@ -24,6 +24,10 @@ const orderRoutes = require('./routes/order.routes');
 const commissionRoutes = require('./routes/commission.routes');
 const adminRoutes = require('./routes/admin.routes');
 const uploadRoutes = require('./routes/upload.routes');
+const paymentRoutes = require('./routes/payment.routes');
+const certificateRoutes = require('./routes/certificate.routes');
+const notificationRoutes = require('./routes/notification.routes');
+const reviewRoutes = require('./routes/review.routes');
 
 const app = express();
 
@@ -49,6 +53,9 @@ app.use(cors(corsOptions));
 // ============================================
 // MIDDLEWARES DE PARSING
 // ============================================
+
+// Webhook de Stripe requiere body raw para validar firma
+app.use('/api/payments/webhook/stripe', express.raw({ type: 'application/json' }));
 
 // Body parser para JSON
 app.use(express.json({ limit: '10mb' }));
@@ -131,6 +138,10 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/commissions', commissionRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/certificates', certificateRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Servir archivos estáticos de uploads
 const path = require('path');

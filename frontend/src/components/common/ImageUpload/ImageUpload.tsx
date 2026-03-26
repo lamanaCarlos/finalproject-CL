@@ -6,6 +6,11 @@ import { FiUpload, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import apiClient from '../../../services/api/client';
 import { useLanguage } from '../../../context/LanguageContext';
+import type { AxiosError } from 'axios';
+
+type ApiErrorResponse = {
+  message?: string;
+};
 
 export interface ImageUploadProps {
   value: string[];
@@ -35,8 +40,7 @@ export const ImageUpload = ({
 
     if (filesArray.length > remainingSlots) {
       toast.error(
-        t('upload.maxImagesReached', { count: remainingSlots }) ||
-          `Solo puedes subir ${remainingSlots} imagen(es) más`
+        `${t('upload.maxImagesReached') || 'Solo puedes subir'} ${remainingSlots} ${t('upload.images') || 'imagen(es) más'}`
       );
       return;
     }
@@ -90,9 +94,10 @@ export const ImageUpload = ({
       } else {
         throw new Error('Error en la respuesta del servidor');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       const errorMessage =
-        error?.response?.data?.message || 'Error al subir la imagen';
+        axiosError?.response?.data?.message || 'Error al subir la imagen';
       toast.error(errorMessage);
     } finally {
       setUploading(null);
@@ -159,10 +164,9 @@ export const ImageUpload = ({
               className="w-full"
             >
               {uploading
-                ? (t('upload.uploading', { filename: uploading }) || `Subiendo ${uploading}...`)
+                ? `${t('upload.uploading') || 'Subiendo'} ${uploading}...`
                 : multiple
-                ? (t('upload.uploadMultiple', { current: value.length, max: maxImages }) ||
-                    `Subir Imágenes (${value.length}/${maxImages})`)
+                ? `${t('upload.uploadMultiple') || 'Subir Imágenes'} (${value.length}/${maxImages})`
                 : value.length === 0
                 ? (t('upload.uploadImage') || 'Subir Imagen')
                 : (t('upload.replaceImage') || 'Reemplazar Imagen')}
@@ -176,7 +180,7 @@ export const ImageUpload = ({
 
       {!canAddMore && (
         <div className="text-sm text-gray-500 text-center py-2">
-          {t('upload.maxLimitReached', { max: maxImages }) || `Has alcanzado el límite de ${maxImages} imagen(es)`}
+          {`${t('upload.maxLimitReached') || 'Has alcanzado el límite de'} ${maxImages} ${t('upload.images') || 'imagen(es)'}`}
         </div>
       )}
     </div>

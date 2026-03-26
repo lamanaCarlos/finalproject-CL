@@ -11,7 +11,9 @@
     "update-images": "node src/scripts/updateArtworkImages.js",
     "test:connection": "node scripts/test-connection.js",
     "test:endpoints": "node scripts/test-endpoints.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test:phase3": "node scripts/test-phase3-integration.js",
+    "test:unit": "node --test tests",
+    "test": "npm run test:unit"
   },
   "keywords": [
     "marketplace",
@@ -36,6 +38,7 @@
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
     "node-fetch": "^2.7.0",
+    "stripe": "^20.4.1",
     "winston": "^3.11.0"
   },
   "devDependencies": {

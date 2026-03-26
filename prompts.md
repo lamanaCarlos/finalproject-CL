@@ -64,8 +64,24 @@ Te propongo varias rutas naturales:
 
 Dime por dónde seguimos y continúo como tu Product Owner.
 
+Fase 2
+
 Prompt 3 
 
 Continua con el orden  propuesto comenzando con la estructura del repositorio. 
 Continua  creando archivos .md por cada uno de los puntos propuestos para tener una documentación detallada y definida.
+
+Fase 3
+
+Prompt 4
+
+Vamos a analizar el proyecto con toda su documentación. Como experto product owner quiero que me propongas mejoras de funcionalidad respetando el objetivo del proyecto y flecos que puedan faltar o mejorar en este proyecto.
+Tomate tu tiempo.
+Crea un documento como terceraFase.md donde quede registradas las mejoras a introducir. Posibles resultados a futuro aplicado al mercado.
+
+Prompt 5
+
+Comienza con la implementación usando el plan.
+Continua, no pares hasta haber terminado de implementarlo todo.
+Registra mis prompts en prompts.md.
 

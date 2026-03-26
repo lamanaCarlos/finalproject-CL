@@ -4,3 +4,7 @@ export * from './artist.api';
 export * from './order.api';
 export * from './commission.api';
 export * from './admin.api';
+export * from './payment.api';
+export * from './certificate.api';
+export * from './review.api';
+export * from './notification.api';

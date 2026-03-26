@@ -7,6 +7,7 @@ const { Order, Artwork, ArtistProfile, PlatformSettings } = require('../models')
 const { createOrderWithArtworkUpdate } = require('../utils/transactions');
 const { formatDatabaseError } = require('../utils/dbErrors');
 const logger = require('../utils/logger');
+const { createNotification } = require('../services/notification.service');
 
 /**
  * Crear pedido (comprar obra)
@@ -63,7 +64,20 @@ const createOrder = async (req, res, next) => {
     const settings = await PlatformSettings.getSettings();
     const commissionPercentage = settings.minimumCommission;
 
-    // Crear orden usando transacción (marca obra como vendida)
+    // Evitar múltiples órdenes activas para la misma obra
+    const existingActiveOrder = await Order.findOne({
+      artworkId: artwork._id,
+      paymentStatus: { $in: ['payment_pending', 'payment_succeeded'] },
+    });
+
+    if (existingActiveOrder) {
+      return res.status(400).json({
+        success: false,
+        message: 'Esta obra ya tiene una compra en proceso o confirmada',
+      });
+    }
+
+    // Crear orden usando transacción (la obra se marca como vendida al confirmar pago)
     const order = await createOrderWithArtworkUpdate(
       {
         buyerId,
@@ -260,6 +274,15 @@ const updateShipping = async (req, res, next) => {
     }
 
     await order.save();
+
+    await createNotification({
+      userId: order.buyerId,
+      type: 'shipping_status_changed',
+      title: 'Actualización de envío',
+      message: `El pedido ${order._id} cambió su envío a ${order.shippingStatus}`,
+      entityType: 'order',
+      entityId: order._id,
+    });
 
     logger.info(`Envío actualizado: pedido ${id} por usuario ${userId}`);
 

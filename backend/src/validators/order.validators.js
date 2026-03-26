@@ -64,8 +64,8 @@ const validateUpdateShipping = [
 /**
  * Validación de ID de pedido
  */
-const validateOrderId = [
-  param('id')
+const createOrderIdValidator = (paramName = 'id') => [
+  param(paramName)
     .notEmpty()
     .withMessage('El ID del pedido es requerido')
     .custom((value) => {
@@ -76,8 +76,12 @@ const validateOrderId = [
     }),
 ];
 
+const validateOrderId = createOrderIdValidator('id');
+const validateOrderIdParam = (paramName) => createOrderIdValidator(paramName);
+
 module.exports = {
   validateCreateOrder,
   validateUpdateShipping,
   validateOrderId,
+  validateOrderIdParam,
 };

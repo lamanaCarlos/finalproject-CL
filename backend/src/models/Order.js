@@ -97,6 +97,45 @@ const orderSchema = new mongoose.Schema(
         default: 0,
       },
     },
+    paymentStatus: {
+      type: String,
+      enum: {
+        values: ['payment_pending', 'payment_succeeded', 'payment_failed', 'refunded'],
+        message: 'El estado de pago debe ser: payment_pending, payment_succeeded, payment_failed o refunded',
+      },
+      default: 'payment_pending',
+      index: true,
+    },
+    paymentProvider: {
+      type: String,
+      trim: true,
+      default: 'stripe',
+    },
+    providerPaymentId: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    paymentAmount: {
+      type: Number,
+      min: [0, 'El monto de pago no puede ser negativo'],
+      default: 0,
+    },
+    paymentCurrency: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      default: 'eur',
+    },
+    paymentConfirmedAt: {
+      type: Date,
+      default: null,
+    },
+    lastWebhookEventId: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     createdAt: {
       type: Date,
       default: Date.now,
@@ -118,6 +157,9 @@ orderSchema.index({ buyerId: 1, createdAt: -1 }); // Historial de compras
 orderSchema.index({ artistId: 1, createdAt: -1 }); // Ventas del artista
 orderSchema.index({ artworkId: 1 }); // Órdenes de una obra específica
 orderSchema.index({ shippingStatus: 1, shippingRequired: 1 }); // Envíos pendientes
+orderSchema.index({ paymentStatus: 1, createdAt: -1 }); // Estado de pago
+orderSchema.index({ providerPaymentId: 1 }, { sparse: true }); // Trazabilidad de pago proveedor
+orderSchema.index({ lastWebhookEventId: 1 }, { sparse: true }); // Idempotencia webhook
 
 // Middleware pre-save: Calcular ganancias del artista
 orderSchema.pre('save', function (next) {

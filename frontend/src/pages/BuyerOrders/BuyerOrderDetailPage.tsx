@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
-import { orderApi } from '../../services/api';
+import { certificateApi, orderApi, paymentApi, reviewApi } from '../../services/api';
 import { DashboardLayout } from '../../components/layout';
 import { Card } from '../../components/common/Card';
 import { Loader } from '../../components/common/Loader';
@@ -11,11 +11,21 @@ import { useLanguage } from '../../context/LanguageContext';
 import { FiArrowLeft, FiPackage, FiMapPin } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { es, enUS } from 'date-fns/locale';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
+import type { AxiosError } from 'axios';
+
+type ApiErrorResponse = {
+  message?: string;
+};
 
 export const BuyerOrderDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const { t, language } = useLanguage();
+  const queryClient = useQueryClient();
   const locale = language === 'es' ? es : enUS;
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
 
   const { data: orderData, isLoading, error } = useQuery({
     queryKey: ['order', id],
@@ -24,6 +34,38 @@ export const BuyerOrderDetailPage = () => {
   });
 
   const order = orderData?.data;
+
+  const { data: certificateData } = useQuery({
+    queryKey: ['certificate', id],
+    queryFn: () => certificateApi.getByOrder(id!),
+    enabled: !!id && order?.paymentStatus === 'payment_succeeded',
+    retry: false,
+  });
+
+  const payMutation = useMutation({
+    mutationFn: () => paymentApi.createPaymentIntent({ orderId: id! }),
+    onSuccess: () => {
+      toast.success('Intento de pago creado. Completa el pago en la pasarela.');
+      queryClient.invalidateQueries({ queryKey: ['order', id] });
+    },
+    onError: (error: unknown) => {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      toast.error(axiosError?.response?.data?.message || 'No se pudo iniciar el pago');
+    },
+  });
+
+  const reviewMutation = useMutation({
+    mutationFn: () => reviewApi.createReview({ orderId: id!, rating, comment }),
+    onSuccess: () => {
+      toast.success('Reseña enviada correctamente');
+      setComment('');
+      queryClient.invalidateQueries({ queryKey: ['order', id] });
+    },
+    onError: (error: unknown) => {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      toast.error(axiosError?.response?.data?.message || 'No se pudo enviar la reseña');
+    },
+  });
 
   if (isLoading) {
     return (
@@ -68,6 +110,19 @@ export const BuyerOrderDetailPage = () => {
       }
     }
     return <Badge variant="success">{t('order.completed') || 'Completado'}</Badge>;
+  };
+
+  const getPaymentStatusBadge = () => {
+    switch (order.paymentStatus) {
+      case 'payment_succeeded':
+        return <Badge variant="success">Pago confirmado</Badge>;
+      case 'payment_failed':
+        return <Badge variant="danger">Pago fallido</Badge>;
+      case 'refunded':
+        return <Badge variant="warning">Reembolsado</Badge>;
+      default:
+        return <Badge variant="info">Pago pendiente</Badge>;
+    }
   };
 
   return (
@@ -162,6 +217,10 @@ export const BuyerOrderDetailPage = () => {
                   <span className="text-gray-600">{t('order.status') || 'Estado'}</span>
                   {getOrderStatusBadge()}
                 </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Pago</span>
+                  {getPaymentStatusBadge()}
+                </div>
                 <div className="border-t pt-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-gray-600">{t('order.price') || 'Precio'}</span>
@@ -180,8 +239,70 @@ export const BuyerOrderDetailPage = () => {
                     </span>
                   </div>
                 </div>
+                {order.paymentStatus !== 'payment_succeeded' && (
+                  <div className="pt-4 border-t">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => payMutation.mutate()}
+                      disabled={payMutation.isPending}
+                    >
+                      {payMutation.isPending ? 'Iniciando pago...' : 'Pagar ahora'}
+                    </Button>
+                  </div>
+                )}
               </div>
             </Card>
+
+            {order.paymentStatus === 'payment_succeeded' && (
+              <Card padding="lg">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Certificado / Licencia</h2>
+                {certificateData?.data ? (
+                  <div className="space-y-2 text-sm text-gray-700">
+                    <p><span className="font-semibold">Tipo:</span> {certificateData.data.type}</p>
+                    <p><span className="font-semibold">Emitido:</span> {format(new Date(certificateData.data.issuedAt), 'dd MMM yyyy', { locale })}</p>
+                    <p className="text-gray-600">{certificateData.data.terms}</p>
+                  </div>
+                ) : (
+                  <p className="text-gray-600">El certificado se está generando.</p>
+                )}
+              </Card>
+            )}
+
+            {order.paymentStatus === 'payment_succeeded' && (
+              <Card padding="lg">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Dejar reseña</h2>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Valoración</label>
+                    <select
+                      value={rating}
+                      onChange={(e) => setRating(parseInt(e.target.value, 10))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    >
+                      <option value={5}>5 - Excelente</option>
+                      <option value={4}>4 - Muy buena</option>
+                      <option value={3}>3 - Buena</option>
+                      <option value={2}>2 - Regular</option>
+                      <option value={1}>1 - Mala</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Comentario</label>
+                    <textarea
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      rows={4}
+                    />
+                  </div>
+                  <Button onClick={() => reviewMutation.mutate()} disabled={reviewMutation.isPending}>
+                    {reviewMutation.isPending ? 'Enviando...' : 'Enviar reseña'}
+                  </Button>
+                </div>
+              </Card>
+            )}
           </div>
         </div>
       </div>
